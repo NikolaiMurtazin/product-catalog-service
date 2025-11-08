@@ -4,6 +4,7 @@ import model.Product;
 import service.AuditService;
 import service.AuthService;
 import service.ProductService;
+import service.dto.SearchCriteria;
 import ui.in.UserInputHandler;
 import ui.out.ConsolePrinter;
 
@@ -60,12 +61,10 @@ public class ConsoleMenu {
     public void run() {
         output.printHeader("Каталог Товаров Маркетплейса");
 
-        // 1. Цикл авторизации
         while (authService.getCurrentUser().isEmpty()) {
             runLoginMenu();
         }
 
-        // 2. Основной цикл приложения
         runMainMenu();
     }
 
@@ -81,8 +80,8 @@ public class ConsoleMenu {
 
         authService.login(username, password)
                 .ifPresentOrElse(
-                        output::printUser, // Успех
-                        () -> output.printError("Неверный логин или пароль.") // Провал
+                        output::printUser,
+                        () -> output.printError("Неверный логин или пароль.")
                 );
     }
 
@@ -94,46 +93,49 @@ public class ConsoleMenu {
         boolean running = true;
         while (running) {
             output.printHeader("Главное Меню");
-            System.out.println("1. Показать все товары");
-            System.out.println("2. Найти товар по ID");
-            System.out.println("3. Поиск/фильтрация товаров");
 
-            // Админские функции
+            System.out.println("""
+                    1. Показать все товары
+                    2. Найти товар по ID
+                    3. Поиск/фильтрация товаров
+                    """);
+
             if (authService.isAdmin()) {
-                System.out.println("--- Администрирование ---");
-                System.out.println("4. Добавить новый товар");
-                System.out.println("5. Изменить товар");
-                System.out.println("6. Удалить товар");
-                System.out.println("7. Показать лог аудита");
+                System.out.println("""
+                        --- Администрирование ---
+                        4. Добавить новый товар
+                        5. Изменить товар
+                        6. Удалить товар
+                        7. Показать лог аудита
+                        """);
             }
 
-            System.out.println("---------------------------");
-            System.out.println("0. Выход");
+            System.out.println("""
+                    ---------------------------
+                    0. Выход
+                    """);
 
             int choice = input.readInt("Выберите опцию:");
 
             switch (choice) {
-                case 1: viewAllProducts(); break;
-                case 2: viewProductById(); break;
-                case 3: searchProducts(); break;
+                case 1 -> viewAllProducts();
+                case 2 -> viewProductById();
+                case 3 -> searchProducts();
 
-                case 4: if (authService.isAdmin()) addProduct(); break;
-                case 5: if (authService.isAdmin()) updateProduct(); break;
-                case 6: if (authService.isAdmin()) deleteProduct(); break;
-                case 7: if (authService.isAdmin()) viewAuditLog(); break;
+                case 4 -> { if (authService.isAdmin()) addProduct(); }
+                case 5 -> { if (authService.isAdmin()) updateProduct(); }
+                case 6 -> { if (authService.isAdmin()) deleteProduct(); }
+                case 7 -> { if (authService.isAdmin()) viewAuditLog(); }
 
-                case 0:
+                case 0 -> {
                     running = false;
                     authService.logout();
                     output.printMessage("Выход из системы. До свидания!");
-                    break;
-                default:
-                    output.printError("Неизвестная опция. Попробуйте снова.");
+                }
+                default -> output.printError("Неизвестная опция. Попробуйте снова.");
             }
         }
     }
-
-    // --- Реализация опций меню ---
 
     /**
      * (Пункт 1) Получает и отображает список всех товаров.
@@ -166,6 +168,9 @@ public class ConsoleMenu {
     /**
      * (Пункт 3) Запрашивает критерии фильтрации и отображает результат.
      * <p>
+     * (Исправлено: теперь создает {@link SearchCriteria} DTO
+     * и передает его в сервис).
+     * <p>
      * Также демонстрирует работу кэша (Бонус),
      * выполняя запрос дважды и замеряя время.
      */
@@ -173,24 +178,18 @@ public class ConsoleMenu {
         output.printHeader("Поиск и фильтрация");
         output.printMessage("Запустим поиск по кэшируемым данным.");
 
-        // Считываем опциональные параметры
         String category = input.readOptionalString("Категория:");
         String brand = input.readOptionalString("Бренд:");
         Double minPrice = input.readOptionalDouble("Мин. цена:");
         Double maxPrice = input.readOptionalDouble("Макс. цена:");
-
-        // Выполняем поиск (он использует кэш)
-        List<Product> products = productService.searchProducts(
-                category, brand, minPrice, maxPrice);
+        SearchCriteria criteria = new SearchCriteria(category, brand, minPrice, maxPrice);
+        List<Product> products = productService.searchProducts(criteria);
 
         output.printProducts(products);
-
-        // Демонстрация кэша:
         output.printMessage("\n--- Демонстрация Кэша ---");
         output.printMessage("Запускаем ТОЧНО ТАКОЙ ЖЕ поиск еще раз...");
 
-        // Вызываем сервис еще раз. Теперь он должен взять из кэша.
-        products = productService.searchProducts(category, brand, minPrice, maxPrice);
+        products = productService.searchProducts(criteria);
 
         output.printProducts(products);
         output.printMessage("--- Конец демонстрации кэша ---");
@@ -235,14 +234,12 @@ public class ConsoleMenu {
         Product product = productOpt.get();
         output.printMessage("Найден товар: " + product.getName());
 
-        // Считываем новые данные
         String name = input.readString("Новое название:");
         String category = input.readString("Новая категория:");
         String brand = input.readString("Новый бренд:");
         double price = input.readDouble("Новая цена:");
         int stock = input.readInt("Новое кол-во на складе:");
 
-        // Обновляем объект
         product.setName(name);
         product.setCategory(category);
         product.setBrand(brand);
@@ -262,7 +259,6 @@ public class ConsoleMenu {
         output.printHeader("Удаление товара");
         long id = input.readInt("Введите ID товара для удаления:");
 
-        // Проверяем, существует ли товар, прежде чем удалять
         if (productService.getProductById(id).isPresent()) {
             productService.deleteProduct(id);
             output.printMessage("Товар с ID=" + id + " успешно удален.");

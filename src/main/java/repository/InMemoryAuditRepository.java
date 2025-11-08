@@ -36,8 +36,6 @@ public class InMemoryAuditRepository implements AuditRepository {
      */
     @Override
     public List<String> findAll() {
-        // Возвращаем копию, чтобы никто не мог изменить
-        // оригинальный список снаружи
         return new ArrayList<>(auditLog);
     }
 }

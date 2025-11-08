@@ -1,6 +1,7 @@
 package service;
 
 import model.Product;
+import service.dto.SearchCriteria;
 
 import java.util.List;
 import java.util.Optional;
@@ -51,14 +52,10 @@ public interface ProductService {
 
     /**
      * Ищет товары по критериям.
-     * (Здесь будет реализовано кэширование)
      *
-     * @param category Категория (null, если не используется)
-     * @param brand    Бренд (null, если не используется)
-     * @param minPrice Мин. цена (null, если не используется)
-     * @param maxPrice Макс. цена (null, если не используется)
+     * @param criteria Объект-параметр, содержащий все критерии фильтрации.
      * @return Список найденных товаров
+     * @see SearchCriteria
      */
-    List<Product> searchProducts(String category, String brand,
-                                 Double minPrice, Double maxPrice);
+    List<Product> searchProducts(SearchCriteria criteria);
 }

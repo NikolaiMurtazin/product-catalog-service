@@ -17,9 +17,12 @@ public class ConsolePrinter {
      * @param title Текст заголовка (будет приведен к верхнему регистру)
      */
     public void printHeader(String title) {
-        System.out.println("\n========================================");
-        System.out.println("  " + title.toUpperCase());
-        System.out.println("========================================");
+        System.out.printf("""
+                
+                ========================================
+                  %s
+                ========================================
+                %n""", title.toUpperCase());
     }
 
     /**
@@ -62,7 +65,6 @@ public class ConsolePrinter {
 
         for (Product product : products) {
             System.out.println("--------------------");
-            // Мы используем кастомный toString() из Product.java
             System.out.println(product);
         }
         System.out.println("--------------------");

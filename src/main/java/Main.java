@@ -33,42 +33,22 @@ public class Main {
      * @param args Аргументы командной строки (не используются).
      */
     public static void main(String[] args) {
-
-        // --- 1. Слой Репозиториев (Хранилище) ---
-        // Создаем конкретные реализации репозиториев
         ProductRepository productRepository = new InMemoryProductRepository();
         UserRepository userRepository = new InMemoryUserRepository();
         AuditRepository auditRepository = new InMemoryAuditRepository();
 
-        // --- 2. Слой Сервисов (Бизнес-логика) ---
-        // Создаем реализации сервисов, передавая им репозитории
-
-        // Особый случай: циклическая зависимость AuthService <-> AuditService
-        // Решаем ее через Setter Injection
-
-        // 2a. Создаем AuditService (он пока не знает про AuthService)
         AuditServiceImpl auditService = new AuditServiceImpl(auditRepository);
-
-        // 2b. Создаем AuthService, передавая ему AuditService
         AuthService authService = new AuthServiceImpl(userRepository, auditService);
+        auditService.setAuthService(authService);
 
-        // 2c. Теперь "до-внедряем" AuthService в AuditService
-        auditService.setAuthService(authService); // <--- Цикл замкнулся!
-
-        // 2d. Создаем ProductService (он зависит от репозитория и аудита)
         ProductService productService = new ProductServiceImpl(
                 productRepository, auditService);
 
-        // --- 3. Слой UI (Представление) ---
-        // Создаем вспомогательные классы UI
         UserInputHandler inputHandler = new UserInputHandler();
         ConsolePrinter consolePrinter = new ConsolePrinter();
 
-        // --- 4. Заполнение данными (Bootstrap) ---
-        // Добавим админа, чтобы можно было войти
         userRepository.save(new User(0, "admin", "admin123", Role.ADMIN));
 
-        // Добавим несколько товаров для теста
         productService.addProduct(new Product("Ноутбук 'Pro'", "Электроника",
                 "TechBrand", 150000.00, 10));
         productService.addProduct(new Product("Смартфон 'X100'", "Электроника",
@@ -78,8 +58,6 @@ public class Main {
         productService.addProduct(new Product("Книга 'Чистая Архитектура'", "Книги",
                 "BookPress", 1500.00, 50));
 
-        // --- 5. Запуск Приложения ---
-        // Создаем главный класс меню, передавая ему ВСЕ сервисы и утилиты UI
         ConsoleMenu menu = new ConsoleMenu(
                 productService,
                 authService,
@@ -88,7 +66,6 @@ public class Main {
                 consolePrinter
         );
 
-        // Запускаем!
         menu.run();
     }
 }

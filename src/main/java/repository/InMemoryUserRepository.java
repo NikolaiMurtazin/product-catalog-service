@@ -35,8 +35,6 @@ public class InMemoryUserRepository implements UserRepository {
      */
     @Override
     public Optional<User> findByUsername(String username) {
-        // Optional.ofNullable() - безопасный способ обернуть
-        // результат, который может быть null (если юзер не найден)
         return Optional.ofNullable(storage.get(username));
     }
 

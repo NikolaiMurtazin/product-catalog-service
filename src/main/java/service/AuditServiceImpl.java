@@ -30,8 +30,12 @@ public class AuditServiceImpl implements AuditService {
     private AuthService authService;
 
     /** Форматтер для отметки времени в логах аудита. */
-    private static final DateTimeFormatter dtf =
+    private static final DateTimeFormatter AUDIT_TIMESTAMP_FORMATTER =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    /** Имя пользователя по умолчанию для системных событий аудита. */
+    private static final String DEFAULT_AUDIT_USERNAME = "SYSTEM";
+
 
     /**
      * Создает экземпляр сервиса аудита.
@@ -62,10 +66,8 @@ public class AuditServiceImpl implements AuditService {
      */
     @Override
     public void logAction(String action) {
-        String username = "SYSTEM"; // По умолчанию
+        String username = DEFAULT_AUDIT_USERNAME;
 
-        // Проверяем, был ли authService уже установлен
-        // и есть ли залогиненный юзер
         if (authService != null) {
             Optional<User> userOpt = authService.getCurrentUser();
             if (userOpt.isPresent()) {
@@ -73,7 +75,7 @@ public class AuditServiceImpl implements AuditService {
             }
         }
 
-        String timestamp = LocalDateTime.now().format(dtf);
+        String timestamp = LocalDateTime.now().format(AUDIT_TIMESTAMP_FORMATTER);
         String logEntry = String.format("[%s] User: [%s] - Action: [%s]",
                 timestamp, username, action);
 

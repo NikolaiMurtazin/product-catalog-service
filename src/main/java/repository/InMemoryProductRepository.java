@@ -1,6 +1,7 @@
 package repository;
 
 import model.Product;
+import service.dto.SearchCriteria;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +39,7 @@ public class InMemoryProductRepository implements ProductRepository {
      */
     @Override
     public Product save(Product product) {
-        if (product.getId() == 0) { // Это новый продукт
+        if (product.getId() == 0) {
             product.setId(idCounter.incrementAndGet());
         }
         storage.put(product.getId(), product);
@@ -83,28 +84,25 @@ public class InMemoryProductRepository implements ProductRepository {
      * <p>
      * Реализация выполнена с помощью Stream API для фильтрации
      * коллекции значений ({@code storage.values()}).
-     * Фильтрация происходит поочередно по каждому не-null параметру.
+     * Фильтрация происходит поочередно по каждому не-null полю
+     * из DTO {@link SearchCriteria}.
      */
     @Override
-    public List<Product> search(String category, String brand,
-                                Double minPrice, Double maxPrice) {
+    public List<Product> search(SearchCriteria criteria) {
 
-        // 1. Берем все значения из Map
         return storage.values().stream()
-                // 2. Начинаем фильтрацию
-                .filter(product -> category == null ||
-                        product.getCategory().equalsIgnoreCase(category))
+                .filter(product -> criteria.category() == null ||
+                        product.getCategory().equalsIgnoreCase(criteria.category()))
 
-                .filter(product -> brand == null ||
-                        product.getBrand().equalsIgnoreCase(brand))
+                .filter(product -> criteria.brand() == null ||
+                        product.getBrand().equalsIgnoreCase(criteria.brand()))
 
-                .filter(product -> minPrice == null ||
-                        product.getPrice() >= minPrice)
+                .filter(product -> criteria.minPrice() == null ||
+                        product.getPrice() >= criteria.minPrice())
 
-                .filter(product -> maxPrice == null ||
-                        product.getPrice() <= maxPrice)
+                .filter(product -> criteria.maxPrice() == null ||
+                        product.getPrice() <= criteria.maxPrice())
 
-                // 3. Собираем результат в новый список
                 .collect(Collectors.toList());
     }
 }

@@ -24,6 +24,16 @@ public class AuthServiceImpl implements AuthService {
      */
     private User currentUser = null;
 
+    /** Действие аудита для успешного входа. */
+    private static final String AUDIT_ACTION_LOGIN_SUCCESS = "LOGIN_SUCCESS";
+
+    /** Действие аудита для неудачного входа. */
+    private static final String AUDIT_ACTION_LOGIN_FAILURE = "LOGIN_FAILURE";
+
+    /** Действие аудита для выхода. */
+    private static final String AUDIT_ACTION_LOGOUT = "LOGOUT";
+
+
     /**
      * Создает экземпляр сервиса аутентификации
      * (Внедрение зависимостей через конструктор).
@@ -47,25 +57,18 @@ public class AuthServiceImpl implements AuthService {
      */
     @Override
     public Optional<User> login(String username, String password) {
-        // Ищем юзера в репозитории
         Optional<User> userOpt = userRepository.findByUsername(username);
 
         if (userOpt.isPresent()) {
             User user = userOpt.get();
-            // В ДЗ-1 мы не хэшируем, а просто сравниваем пароли
             if (user.getPasswordHash().equals(password)) {
-                this.currentUser = user; // Сохраняем состояние
-
-                // Логируем успешный вход
-                // Мы вызываем logAction ПОСЛЕ установки currentUser,
-                // чтобы AuditService знал, КТО выполнил действие.
-                auditService.logAction("LOGIN_SUCCESS");
+                this.currentUser = user;
+                auditService.logAction(AUDIT_ACTION_LOGIN_SUCCESS);
                 return Optional.of(user);
             }
         }
 
-        // Логируем неудачный вход (пользователь еще null)
-        auditService.logAction("LOGIN_FAILURE: username=" + username);
+        auditService.logAction(AUDIT_ACTION_LOGIN_FAILURE + ": username=" + username);
         return Optional.empty();
     }
 
@@ -78,8 +81,8 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void logout() {
         if (currentUser != null) {
-            auditService.logAction("LOGOUT");
-            this.currentUser = null; // Сбрасываем состояние
+            auditService.logAction(AUDIT_ACTION_LOGOUT);
+            this.currentUser = null;
         }
     }
 
@@ -102,7 +105,6 @@ public class AuthServiceImpl implements AuthService {
      */
     @Override
     public boolean isAdmin() {
-        // Проверяем, что юзер есть И что его роль ADMIN
         return currentUser != null && currentUser.getRole() == Role.ADMIN;
     }
 }

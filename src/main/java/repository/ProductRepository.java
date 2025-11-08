@@ -1,6 +1,7 @@
 package repository;
 
 import model.Product;
+import service.dto.SearchCriteria;
 
 import java.util.List;
 import java.util.Optional;
@@ -44,13 +45,10 @@ public interface ProductRepository {
 
     /**
      * Выполняет поиск и фильтрацию товаров по заданным критериям.
-     * Если какой-либо параметр равен null, он не используется в фильтрации.
      *
-     * @param category Категория (может быть null)
-     * @param brand    Бренд (может быть null)
-     * @param minPrice Минимальная цена (может быть null)
-     * @param maxPrice Максимальная цена (может быть null)
+     * @param criteria Объект-параметр, содержащий все критерии фильтрации.
      * @return Список отфильтрованных товаров
+     * @see SearchCriteria
      */
-    List<Product> search(String category, String brand, Double minPrice, Double maxPrice);
+    List<Product> search(SearchCriteria criteria);
 }

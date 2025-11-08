@@ -28,6 +28,16 @@ public class ProductServiceImpl implements ProductService {
     private final Map<SearchCriteria, List<Product>> searchCache =
             new ConcurrentHashMap<>();
 
+    private static final String AUDIT_ACTION_ADD = "ADD_PRODUCT";
+
+    private static final String AUDIT_ACTION_UPDATE = "UPDATE_PRODUCT";
+
+    private static final String AUDIT_ACTION_DELETE = "DELETE_PRODUCT";
+
+    private static final String AUDIT_CACHE_MISS = "CACHE_MISS: Выполняем поиск в репозитории";
+
+    private static final String AUDIT_CACHE_INVALIDATED = "CACHE_INVALIDATED";
+
     /**
      * Создает экземпляр сервиса управления товарами.
      *
@@ -49,10 +59,11 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Product addProduct(Product product) {
         Product savedProduct = productRepository.save(product);
-        auditService.logAction("ADD_PRODUCT: id=" + savedProduct.getId() +
-                ", name=" + savedProduct.getName());
 
-        // При любом изменении данных - СБРАСЫВАЕМ КЭШ
+        String logMessage = String.format("%s: id=%d, name=%s",
+                AUDIT_ACTION_ADD, savedProduct.getId(), savedProduct.getName());
+        auditService.logAction(logMessage);
+
         invalidateCache();
         return savedProduct;
     }
@@ -66,9 +77,12 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Product updateProduct(Product product) {
         Product updatedProduct = productRepository.save(product);
-        auditService.logAction("UPDATE_PRODUCT: id=" + updatedProduct.getId());
 
-        invalidateCache(); // СБРОС КЭША
+        String logMessage = String.format("%s: id=%d",
+                AUDIT_ACTION_UPDATE, updatedProduct.getId());
+        auditService.logAction(logMessage);
+
+        invalidateCache();
         return updatedProduct;
     }
 
@@ -81,9 +95,11 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void deleteProduct(long id) {
         productRepository.deleteById(id);
-        auditService.logAction("DELETE_PRODUCT: id=" + id);
 
-        invalidateCache(); // СБРОС КЭША
+        String logMessage = String.format("%s: id=%d", AUDIT_ACTION_DELETE, id);
+        auditService.logAction(logMessage);
+
+        invalidateCache();
     }
 
     /**
@@ -94,7 +110,6 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     public Optional<Product> getProductById(long id) {
-        // Здесь кэш не нужен, т.к. findById в Map и так мгновенный
         return productRepository.findById(id);
     }
 
@@ -123,30 +138,17 @@ public class ProductServiceImpl implements ProductService {
      * и "cache hit" (мгновенный ответ из кэша).
      */
     @Override
-    public List<Product> searchProducts(String category, String brand,
-                                        Double minPrice, Double maxPrice) {
-
-        // 1. Создаем ключ по текущим критериям
-        SearchCriteria criteria = new SearchCriteria(category, brand,
-                minPrice, maxPrice);
-
-        // 2. Ищем в кэше.
-        // computeIfAbsent - атомарная операция:
-        // "если по ключу criteria что-то есть - верни это.
-        //  если нет - выполни лямбду (k -> ...),
-        //  положи результат в кэш и верни его."
-
-        long start = System.nanoTime(); // Метрика (бонус)
+    // (Исправление 1: ИЗМЕНЕНА СИГНАТУРА, теперь DTO)
+    public List<Product> searchProducts(SearchCriteria criteria) {
+        long start = System.nanoTime();
 
         List<Product> result = searchCache.computeIfAbsent(criteria, k -> {
-            // Эта лямбда выполнится, только если в кэше ПУСТО
-            auditService.logAction("CACHE_MISS: Выполняем поиск в репозитории");
-            // k.category() - это вызов аксессора из record
-            return productRepository.search(k.category(), k.brand(),
-                    k.minPrice(), k.maxPrice());
+            auditService.logAction(AUDIT_CACHE_MISS);
+
+            return productRepository.search(k);
         });
 
-        long duration = (System.nanoTime() - start) / 1_000_000; // в мс
+        long duration = (System.nanoTime() - start) / 1_000_000;
 
         if (duration > 0) {
             System.out.println(
@@ -171,7 +173,7 @@ public class ProductServiceImpl implements ProductService {
     private void invalidateCache() {
         if (!searchCache.isEmpty()) {
             searchCache.clear();
-            auditService.logAction("CACHE_INVALIDATED");
+            auditService.logAction(AUDIT_CACHE_INVALIDATED);
         }
     }
 }
