@@ -13,11 +13,14 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <surefire.version>3.1.2</surefire.version>
-
+        <postgresql.version>42.7.8</postgresql.version>
+        <liquibase.version>5.0.1</liquibase.version>
         <lombok.version>1.18.42</lombok.version>
         <junit.version>5.10.0</junit.version>
         <mockito.version>5.5.0</mockito.version>
         <assertj.version>3.24.2</assertj.version>
+        <testcontainers.junit.version>1.21.3</testcontainers.junit.version>
+        <testcontainers.postgresql.version>1.21.3</testcontainers.postgresql.version>
     </properties>
 
     <dependencies>
@@ -26,6 +29,32 @@
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
             <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgresql.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
+            <version>${liquibase.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${testcontainers.junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${testcontainers.postgresql.version}</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>

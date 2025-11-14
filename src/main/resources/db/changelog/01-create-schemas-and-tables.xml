@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
+
+    <changeSet id="2" author="nikolai">
+        <comment>Установка search_path на app_schema для этой сессии</comment>
+        <sql>
+            SET search_path TO app_schema, public;
+        </sql>
+    </changeSet>
+
+    <changeSet id="3" author="nikolai">
+        <comment>Создание sequences для ID</comment>
+
+        <createSequence sequenceName="users_id_seq"
+                        schemaName="app_schema"
+                        incrementBy="1"
+                        startValue="1"/>
+
+        <createSequence sequenceName="products_id_seq"
+                        schemaName="app_schema"
+                        incrementBy="1"
+                        startValue="1"/>
+    </changeSet>
+
+    <changeSet id="4" author="nikolai">
+        <comment>Создание таблиц (users, products, audit_log)</comment>
+
+        <createTable tableName="users" schemaName="app_schema">
+            <column name="id" type="BIGINT"
+                    defaultValueComputed="nextval('app_schema.users_id_seq')">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="username" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="password_hash" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="products" schemaName="app_schema">
+            <column name="id" type="BIGINT"
+                    defaultValueComputed="nextval('app_schema.products_id_seq')">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="category" type="VARCHAR(255)"/>
+            <column name="brand" type="VARCHAR(255)"/>
+            <column name="price" type="DECIMAL(10, 2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="stock" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="audit_log" schemaName="app_schema">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="event_log" type="VARCHAR(1000)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
+
+    <changeSet id="5" author="nikolai">
+        <comment>Наполнение таблиц начальными данными</comment>
+
+        <insert tableName="users" schemaName="app_schema">
+            <column name="username" value="admin"/>
+            <column name="password_hash" value="admin123"/>
+            <column name="role" value="ADMIN"/>
+        </insert>
+
+        <insert tableName="products" schemaName="app_schema">
+            <column name="name" value="Ноутбук 'Pro'"/>
+            <column name="category" value="Электроника"/>
+            <column name="brand" value="TechBrand"/>
+            <column name="price" value="150000.00"/>
+            <column name="stock" value="10"/>
+        </insert>
+        <insert tableName="products" schemaName="app_schema">
+            <column name="name" value="Смартфон 'X100'"/>
+            <column name="category" value="Электроника"/>
+            <column name="brand" value="MobileCorp"/>
+            <column name="price" value="80000.00"/>
+            <column name="stock" value="25"/>
+        </insert>
+        <insert tableName="products" schemaName="app_schema">
+            <column name="name" value="Кофеварка 'Barista'"/>
+            <column name="category" value="Бытовая техника"/>
+            <column name="brand" value="HomeGoods"/>
+            <column name="price" value="12000.00"/>
+            <column name="stock" value="15"/>
+        </insert>
+        <insert tableName="products" schemaName="app_schema">
+            <column name="name" value="Книга 'Чистая Архитектура'"/>
+            <column name="category" value="Книги"/>
+            <column name="brand" value="BookPress"/>
+            <column name="price" value="1500.00"/>
+            <column name="stock" value="50"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
