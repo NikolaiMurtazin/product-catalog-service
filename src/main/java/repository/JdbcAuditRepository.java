@@ -1,5 +1,7 @@
 package repository;
 
+import exception.AuditRepositoryException;
+import lombok.NonNull;
 import util.ConnectionManager;
 
 import java.sql.Connection;
@@ -35,7 +37,7 @@ public class JdbcAuditRepository implements AuditRepository {
      * Соединение получается и закрывается через {@link ConnectionManager}.
      */
     @Override
-    public void save(String event) {
+    public void save(@NonNull String event) {
         try (Connection connection = ConnectionManager.getConnection();
              PreparedStatement statement = connection.prepareStatement(SAVE_SQL)) {
 
@@ -43,7 +45,7 @@ public class JdbcAuditRepository implements AuditRepository {
             statement.executeUpdate();
 
         } catch (SQLException e) {
-            throw new RuntimeException("Ошибка при сохранении лога аудита", e);
+            throw new AuditRepositoryException("Ошибка при сохранении лога аудита", e);
         }
     }
 
@@ -66,7 +68,7 @@ public class JdbcAuditRepository implements AuditRepository {
             }
 
         } catch (SQLException e) {
-            throw new RuntimeException("Ошибка при получении логов аудита", e);
+            throw new AuditRepositoryException("Ошибка при получении логов аудита", e);
         }
 
         return events;

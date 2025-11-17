@@ -12,11 +12,11 @@ import java.sql.SQLException;
  */
 public class ConnectionManager {
 
-    /** Ключ для URL базы данных из {@code config.properties}. */
+    /** Ключ для URL базы данных из {@code application.properties}. */
     private static final String DB_URL_KEY = "db.url";
-    /** Ключ для имени пользователя БД из {@code config.properties}. */
+    /** Ключ для имени пользователя БД из {@code application.properties}. */
     private static final String DB_USER_KEY = "db.user";
-    /** Ключ для пароля БД из {@code config.properties}. */
+    /** Ключ для пароля БД из {@code application.properties}. */
     private static final String DB_PASSWORD_KEY = "db.password";
 
 

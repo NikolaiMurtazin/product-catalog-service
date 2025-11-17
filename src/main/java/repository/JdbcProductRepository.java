@@ -1,5 +1,7 @@
 package repository;
 
+import exception.ProductRepositoryException;
+import lombok.NonNull;
 import model.Product;
 import service.dto.SearchCriteria;
 import util.ConnectionManager;
@@ -51,14 +53,21 @@ public class JdbcProductRepository implements ProductRepository {
             """;
 
     /**
+     * Внутренний record для хранения "пары" из
+     * динамически построенного SQL и списка его параметров.
+     * (Используется для декомпозиции метода search).
+     */
+    private record DynamicQuery(String sql, List<Object> params) {}
+
+    /**
      * {@inheritDoc}
      * <p>
-     * Делегирует вызов {@link #insert(Product)} (если {@code product.getId() == 0})
-     * или {@link #update(Product)} (если {@code product.getId() > 0}).
+     * Делегирует вызов {@link #insert(Product)} (если {@code product.getId() == null})
+     * или {@link #update(Product)} (если {@code product.getId() != null}).
      */
     @Override
     public Product save(Product product) {
-        if (product.getId() == 0) {
+        if (product.getId() == null) {
             return insert(product);
         } else {
             return update(product);
@@ -68,12 +77,12 @@ public class JdbcProductRepository implements ProductRepository {
     /**
      * Приватный метод для вставки нового товара в БД.
      *
-     * @param product Товар для вставки (с id = 0).
+     * @param product Товар для вставки (с id = null).
      * @return Тот же объект товара, но с установленным ID,
      * сгенерированным базой данных.
-     * @throws RuntimeException Оборачивает {@link SQLException} при ошибке.
+     * @throws ProductRepositoryException Оборачивает {@link SQLException} при ошибке.
      */
-    private Product insert(Product product) {
+    private Product insert(@NonNull Product product) {
         try (Connection connection = ConnectionManager.getConnection();
              PreparedStatement statement = connection.prepareStatement(
                      INSERT_SQL, Statement.RETURN_GENERATED_KEYS)) {
@@ -94,7 +103,7 @@ public class JdbcProductRepository implements ProductRepository {
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Ошибка при вставке (insert) товара", e);
+            throw new ProductRepositoryException("Ошибка при вставке (insert) товара", e);
         }
         return product;
     }
@@ -104,9 +113,9 @@ public class JdbcProductRepository implements ProductRepository {
      *
      * @param product Товар для обновления (с id > 0).
      * @return Тот же объект товара.
-     * @throws RuntimeException Оборачивает {@link SQLException} при ошибке.
+     * @throws ProductRepositoryException Оборачивает {@link SQLException} при ошибке.
      */
-    private Product update(Product product) {
+    private Product update(@NonNull Product product) {
         try (Connection connection = ConnectionManager.getConnection();
              PreparedStatement statement = connection.prepareStatement(UPDATE_SQL)) {
 
@@ -115,12 +124,12 @@ public class JdbcProductRepository implements ProductRepository {
             statement.setString(3, product.getBrand());
             statement.setDouble(4, product.getPrice());
             statement.setInt(5, product.getStock());
-            statement.setLong(6, product.getId()); // id идет в 'WHERE id = ?'
+            statement.setLong(6, product.getId());
 
             statement.executeUpdate();
 
         } catch (SQLException e) {
-            throw new RuntimeException("Ошибка при обновлении (update) товара", e);
+            throw new ProductRepositoryException("Ошибка при обновлении (update) товара", e);
         }
         return product;
     }
@@ -144,7 +153,7 @@ public class JdbcProductRepository implements ProductRepository {
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Ошибка при поиске товара по ID", e);
+            throw new ProductRepositoryException("Ошибка при поиске товара по ID", e);
         }
         return Optional.empty();
     }
@@ -166,7 +175,7 @@ public class JdbcProductRepository implements ProductRepository {
                 products.add(mapRowToProduct(rs));
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Ошибка при поиске всех товаров", e);
+            throw new ProductRepositoryException("Ошибка при поиске всех товаров", e);
         }
         return products;
     }
@@ -186,21 +195,31 @@ public class JdbcProductRepository implements ProductRepository {
             statement.executeUpdate();
 
         } catch (SQLException e) {
-            throw new RuntimeException("Ошибка при удалении товара", e);
+            throw new ProductRepositoryException("Ошибка при удалении товара", e);
         }
     }
 
     /**
      * {@inheritDoc}
      * <p>
-     * Динамически строит SQL-запрос {@code SELECT} на основе
-     * не-null полей из {@link SearchCriteria}.
-     * Использует {@code ILIKE} для регистронезависимого поиска.
+     * Делегирует сборку запроса {@link #buildSearchQuery(SearchCriteria)}
+     * и выполнение {@link #executeSearchQuery(DynamicQuery)}.
      */
     @Override
-    public List<Product> search(SearchCriteria criteria) {
-        List<Product> products = new ArrayList<>();
-        // Используем "чистый" SELECT ... FROM ...
+    public List<Product> search(@NonNull SearchCriteria criteria) {
+        DynamicQuery dynamicQuery = buildSearchQuery(criteria);
+        return executeSearchQuery(dynamicQuery);
+    }
+
+    /**
+     * Приватный метод: "Строитель" SQL-запроса.
+     * <p>
+     * Собирает SQL и список параметров на основе фильтров.
+     *
+     * @param criteria DTO с фильтрами.
+     * @return {@link DynamicQuery}, содержащий SQL-строку и список параметров.
+     */
+    private DynamicQuery buildSearchQuery(@NonNull SearchCriteria criteria) {
         StringBuilder sql = new StringBuilder(SELECT_BASE_SQL);
         List<Object> params = new ArrayList<>();
 
@@ -225,12 +244,25 @@ public class JdbcProductRepository implements ProductRepository {
 
         sql.append(" ORDER BY name");
 
-        try (Connection connection = ConnectionManager.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql.toString())) {
+        return new DynamicQuery(sql.toString(), params);
+    }
 
-            for (int i = 0; i < params.size(); i++) {
-                statement.setObject(i + 1, params.get(i));
-            }
+    /**
+     * Приватный метод: "Исполнитель" запроса.
+     * <p>
+     * Открывает соединение, выполняет запрос и маппит результат.
+     *
+     * @param query {@link DynamicQuery} с готовым SQL и параметрами.
+     * @return Список найденных {@link Product}.
+     * @throws ProductRepositoryException если происходит {@link SQLException}.
+     */
+    private List<Product> executeSearchQuery(@NonNull DynamicQuery query) {
+        List<Product> products = new ArrayList<>();
+
+        try (Connection connection = ConnectionManager.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query.sql())) {
+
+            setParameters(statement, query.params());
 
             try (ResultSet rs = statement.executeQuery()) {
                 while (rs.next()) {
@@ -238,21 +270,33 @@ public class JdbcProductRepository implements ProductRepository {
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Ошибка при поиске (search) товаров", e);
+            throw new ProductRepositoryException("Ошибка при поиске (search) товаров", e);
         }
 
         return products;
     }
 
     /**
+     * Вспомогательный метод для заполнения PreparedStatement.
+     *
+     * @param statement Готовый PreparedStatement
+     * @param params    Список параметров для вставки
+     * @throws SQLException
+     */
+    private void setParameters(@NonNull PreparedStatement statement, @NonNull List<Object> params) throws SQLException {
+        for (int i = 0; i < params.size(); i++) {
+            statement.setObject(i + 1, params.get(i));
+        }
+    }
+
+    /**
      * Вспомогательный "маппер" (DRY-принцип).
-     * Превращает одну строку {@link ResultSet} в объект {@link Product}.
      *
      * @param rs {@link ResultSet}, установленный на текущую строку.
      * @return Заполненный объект {@link Product}.
      * @throws SQLException если имя колонки не найдено или тип не совпадает.
      */
-    private Product mapRowToProduct(ResultSet rs) throws SQLException {
+    private Product mapRowToProduct(@NonNull ResultSet rs) throws SQLException {
         Product product = new Product();
         product.setId(rs.getLong("id"));
         product.setName(rs.getString("name"));

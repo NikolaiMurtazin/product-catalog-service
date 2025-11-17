@@ -1,7 +1,5 @@
+import factory.RepositoryFactory;
 import repository.AuditRepository;
-import repository.JdbcAuditRepository;
-import repository.JdbcProductRepository;
-import repository.JdbcUserRepository;
 import repository.ProductRepository;
 import repository.UserRepository;
 import service.AuditServiceImpl;
@@ -26,6 +24,16 @@ import util.LiquibaseRunner;
 public class Main {
 
     /**
+     * Сообщение об ошибке, если приложение не может
+     * подключиться к БД или запустить миграции.
+     */
+    private static final String ERR_APP_INIT_FAILED = """
+            Ошибка при инициализации приложения.
+            Убедитесь, что БД запущена (docker-compose up -d)
+            и config.properties настроен верно.
+            """;
+
+    /**
      * Точка входа в приложение.
      *
      * @param args Аргументы командной строки (не используются).
@@ -36,16 +44,14 @@ public class Main {
             LiquibaseRunner.runMigrations();
 
         } catch (Exception e) {
-            System.err.println("Ошибка при инициализации приложения. " +
-                    "Убедитесь, что БД запущена (docker-compose up -d) " +
-                    "и config.properties настроен верно.");
+            System.err.println(ERR_APP_INIT_FAILED);
             e.printStackTrace();
             return;
         }
 
-        ProductRepository productRepository = new JdbcProductRepository();
-        UserRepository userRepository = new JdbcUserRepository();
-        AuditRepository auditRepository = new JdbcAuditRepository();
+        ProductRepository productRepository = RepositoryFactory.getProductRepository();
+        UserRepository userRepository = RepositoryFactory.getUserRepository();
+        AuditRepository auditRepository = RepositoryFactory.getAuditRepository();
 
         AuditServiceImpl auditService = new AuditServiceImpl(auditRepository);
         AuthService authService = new AuthServiceImpl(userRepository, auditService);

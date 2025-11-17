@@ -5,12 +5,12 @@ import java.util.Properties;
 
 /**
  * Вспомогательный класс для загрузки конфигурации
- * из файла config.properties.
+ * из файла application.properties.
  */
 public class ConfigLoader {
 
     /** Имя файла конфигурации в 'resources'. */
-    private static final String CONFIG_FILE = "config.properties";
+    private static final String CONFIG_FILE = "application.properties";
     /** Ключ для URL базы данных. */
     private static final String DB_URL_KEY = "db.url";
     /** Ключ для имени пользователя БД. */
@@ -55,7 +55,7 @@ public class ConfigLoader {
     /**
      * Получает значение свойства по его ключу.
      *
-     * @param key Ключ из config.properties
+     * @param key Ключ из application.properties
      * @return Значение свойства
      * @throws IllegalArgumentException если свойство с таким ключом не найдено.
      */

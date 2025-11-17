@@ -1,5 +1,7 @@
 package repository;
 
+import exception.UserRepositoryException;
+import lombok.NonNull;
 import model.Role;
 import model.User;
 import util.ConnectionManager;
@@ -37,7 +39,7 @@ public class JdbcUserRepository implements UserRepository {
      * Соединение и ResultSet закрываются через {@code try-with-resources}.
      */
     @Override
-    public Optional<User> findByUsername(String username) {
+    public Optional<User> findByUsername(@NonNull String username) {
         try (Connection connection = ConnectionManager.getConnection();
              PreparedStatement statement = connection
                      .prepareStatement(FIND_BY_USERNAME_SQL)) {
@@ -50,7 +52,7 @@ public class JdbcUserRepository implements UserRepository {
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Ошибка при поиске пользователя: " + username, e);
+            throw new UserRepositoryException("Ошибка при поиске пользователя: " + username, e);
         }
 
         return Optional.empty();
@@ -64,7 +66,7 @@ public class JdbcUserRepository implements UserRepository {
      * Полученный ID устанавливается обратно в переданный объект {@code user}.
      */
     @Override
-    public User save(User user) {
+    public User save(@NonNull User user) {
         try (Connection connection = ConnectionManager.getConnection();
              PreparedStatement statement = connection.prepareStatement(
                      SAVE_SQL, Statement.RETURN_GENERATED_KEYS)) {
@@ -88,7 +90,7 @@ public class JdbcUserRepository implements UserRepository {
             }
 
         } catch (SQLException e) {
-            throw new RuntimeException("Ошибка при сохранении пользователя: " + user.getUsername(), e);
+            throw new UserRepositoryException("Ошибка при сохранении пользователя: " + user.getUsername(), e);
         }
 
         return user;
@@ -102,7 +104,7 @@ public class JdbcUserRepository implements UserRepository {
      * @return Заполненный объект {@link User}.
      * @throws SQLException если имя колонки не найдено или тип не совпадает.
      */
-    private User mapRowToUser(ResultSet rs) throws SQLException {
+    private User mapRowToUser(@NonNull ResultSet rs) throws SQLException {
         User user = new User();
         user.setId(rs.getLong("id"));
         user.setUsername(rs.getString("username"));
