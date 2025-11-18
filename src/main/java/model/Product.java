@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 public class Product {
 
     /** Уникальный идентификатор товара. */
-    private long id;
+    private Long id;
 
     /** Наименование товара. */
     private String name;

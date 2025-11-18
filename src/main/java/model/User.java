@@ -19,7 +19,7 @@ import lombok.ToString;
 public class User {
 
     /** Уникальный идентификатор пользователя. */
-    private long id;
+    private Long id;
 
     /** Имя пользователя (логин). */
     private String username;

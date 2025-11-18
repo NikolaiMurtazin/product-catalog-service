@@ -12,10 +12,6 @@ import java.util.Optional;
  * Реализация сервиса аудита.
  * Этот сервис ЗАВИСИТ от AuthService, чтобы знать,
  * какой пользователь выполнил действие.
- *
- * ВНИМАНИЕ: Это создает "циклическую зависимость" (Auth -> Audit -> Auth).
- * В Spring это решается через @Lazy,
- * здесь мы решим это в Main.java через "setter injection".
  */
 public class AuditServiceImpl implements AuditService {
 
