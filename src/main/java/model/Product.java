@@ -1,5 +1,6 @@
 package model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -8,24 +9,37 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class Product {
 
-    /** Уникальный идентификатор товара. */
+    /**
+     * Уникальный идентификатор товара.
+     */
     private Long id;
 
-    /** Наименование товара. */
+    /**
+     * Наименование товара.
+     */
     private String name;
 
-    /** Категория товара. */
+    /**
+     * Категория товара.
+     */
     private String category;
 
-    /** Бренд/производитель товара. */
+    /**
+     * Бренд/производитель товара.
+     */
     private String brand;
 
-    /** Цена товара. */
+    /**
+     * Цена товара.
+     */
     private double price;
 
-    /** Количество товара на складе. */
+    /**
+     * Количество товара на складе.
+     */
     private int stock;
 
     /**

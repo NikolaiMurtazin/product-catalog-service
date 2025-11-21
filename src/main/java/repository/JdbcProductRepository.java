@@ -21,31 +21,43 @@ import java.util.Optional;
  */
 public class JdbcProductRepository implements ProductRepository {
 
-    /** Базовый SQL-запрос для выбора всех полей товара. */
+    /**
+     * Базовый SQL-запрос для выбора всех полей товара.
+     */
     private static final String SELECT_BASE_SQL = """
             SELECT id, name, category, brand, price, stock
             FROM app_schema.products
             """;
 
-    /** SQL-запрос для поиска товара по ID. */
+    /**
+     * SQL-запрос для поиска товара по ID.
+     */
     private static final String FIND_BY_ID_SQL = SELECT_BASE_SQL + " WHERE id = ?";
 
-    /** SQL-запрос для поиска всех товаров с сортировкой по имени. */
+    /**
+     * SQL-запрос для поиска всех товаров с сортировкой по имени.
+     */
     private static final String FIND_ALL_SQL = SELECT_BASE_SQL + " ORDER BY name";
 
-    /** SQL-запрос для удаления товара по ID. */
+    /**
+     * SQL-запрос для удаления товара по ID.
+     */
     private static final String DELETE_BY_ID_SQL = """
             DELETE FROM app_schema.products
             WHERE id = ?
             """;
 
-    /** SQL-запрос для вставки нового товара (ID генерируется sequence'ом). */
+    /**
+     * SQL-запрос для вставки нового товара (ID генерируется sequence'ом).
+     */
     private static final String INSERT_SQL = """
             INSERT INTO app_schema.products (name, category, brand, price, stock)
             VALUES (?, ?, ?, ?, ?)
             """;
 
-    /** SQL-запрос для полного обновления существующего товара по ID. */
+    /**
+     * SQL-запрос для полного обновления существующего товара по ID.
+     */
     private static final String UPDATE_SQL = """
             UPDATE app_schema.products
             SET name = ?, category = ?, brand = ?, price = ?, stock = ?
@@ -57,7 +69,8 @@ public class JdbcProductRepository implements ProductRepository {
      * динамически построенного SQL и списка его параметров.
      * (Используется для декомпозиции метода search).
      */
-    private record DynamicQuery(String sql, List<Object> params) {}
+    private record DynamicQuery(String sql, List<Object> params) {
+    }
 
     /**
      * {@inheritDoc}

@@ -18,15 +18,23 @@ import lombok.ToString;
 @EqualsAndHashCode(exclude = "passwordHash")
 public class User {
 
-    /** Уникальный идентификатор пользователя. */
+    /**
+     * Уникальный идентификатор пользователя.
+     */
     private Long id;
 
-    /** Имя пользователя (логин). */
+    /**
+     * Имя пользователя (логин).
+     */
     private String username;
 
-    /** Хэш пароля пользователя */
+    /**
+     * Хэш пароля пользователя
+     */
     private String passwordHash;
 
-    /** Роль пользователя (ADMIN или USER). */
+    /**
+     * Роль пользователя (ADMIN или USER).
+     */
     private Role role;
 }

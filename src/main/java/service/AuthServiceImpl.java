@@ -1,5 +1,7 @@
 package service;
 
+import aspects.annotation.Audit;
+import aspects.annotation.Loggable;
 import model.Role;
 import model.User;
 import repository.UserRepository;
@@ -12,10 +14,14 @@ import java.util.Optional;
  */
 public class AuthServiceImpl implements AuthService {
 
-    /** Репозиторий для доступа к данным пользователей. */
+    /**
+     * Репозиторий для доступа к данным пользователей.
+     */
     private final UserRepository userRepository;
 
-    /** Сервис для логирования действий (вход, выход). */
+    /**
+     * Сервис для логирования действий (вход, выход).
+     */
     private final AuditService auditService;
 
     /**
@@ -23,16 +29,6 @@ public class AuthServiceImpl implements AuthService {
      * {@code null}, если пользователь не аутентифицирован.
      */
     private User currentUser = null;
-
-    /** Действие аудита для успешного входа. */
-    private static final String AUDIT_ACTION_LOGIN_SUCCESS = "LOGIN_SUCCESS";
-
-    /** Действие аудита для неудачного входа. */
-    private static final String AUDIT_ACTION_LOGIN_FAILURE = "LOGIN_FAILURE";
-
-    /** Действие аудита для выхода. */
-    private static final String AUDIT_ACTION_LOGOUT = "LOGOUT";
-
 
     /**
      * Создает экземпляр сервиса аутентификации
@@ -51,11 +47,13 @@ public class AuthServiceImpl implements AuthService {
      * <p>
      * ВНИМАНИЕ: В ДЗ-1 проверка пароля выполняется в открытом виде (простое
      * сравнение строк).
-     * В случае успеха, пользователь сохраняется в поле {@code currentUser}
-     * и выполняется логирование "LOGIN_SUCCESS" через {@link AuditService}.
-     * В случае неудачи, логируется "LOGIN_FAILURE".
+     * <p>
+     * Метод помечен аннотацией {@link Audit}, поэтому факт попытки входа
+     * будет автоматически записан в лог аудита.
      */
     @Override
+    @Loggable
+    @Audit(action = "Попытка входа в систему")
     public Optional<User> login(String username, String password) {
         Optional<User> userOpt = userRepository.findByUsername(username);
 
@@ -63,25 +61,24 @@ public class AuthServiceImpl implements AuthService {
             User user = userOpt.get();
             if (user.getPasswordHash().equals(password)) {
                 this.currentUser = user;
-                auditService.logAction(AUDIT_ACTION_LOGIN_SUCCESS);
                 return Optional.of(user);
             }
         }
 
-        auditService.logAction(AUDIT_ACTION_LOGIN_FAILURE + ": username=" + username);
         return Optional.empty();
     }
 
     /**
      * {@inheritDoc}
      * <p>
-     * Выполняет логирование "LOGOUT" через {@link AuditService} (если
-     * пользователь был залогинен) и сбрасывает поле {@code currentUser} в {@code null}.
+     * Сбрасывает поле {@code currentUser} в {@code null}.
+     * Факт выхода записывается в аудит автоматически через аннотацию {@link Audit}.
      */
     @Override
+    @Loggable
+    @Audit(action = "Выход из системы")
     public void logout() {
         if (currentUser != null) {
-            auditService.logAction(AUDIT_ACTION_LOGOUT);
             this.currentUser = null;
         }
     }
@@ -93,6 +90,7 @@ public class AuthServiceImpl implements AuthService {
      * обернутое в {@link Optional#ofNullable(Object)}.
      */
     @Override
+    @Loggable
     public Optional<User> getCurrentUser() {
         return Optional.ofNullable(currentUser);
     }
@@ -104,6 +102,7 @@ public class AuthServiceImpl implements AuthService {
      * {@link Role#ADMIN}.
      */
     @Override
+    @Loggable
     public boolean isAdmin() {
         return currentUser != null && currentUser.getRole() == Role.ADMIN;
     }

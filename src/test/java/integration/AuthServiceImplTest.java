@@ -13,7 +13,6 @@ import service.AuthServiceImpl;
 import util.ConnectionManager;
 
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,11 +48,6 @@ class AuthServiceImplTest extends BaseIntegrationTest {
         assertThat(result).isPresent();
         assertThat(result.get().getUsername()).isEqualTo("admin");
         assertThat(authService.getCurrentUser()).isPresent();
-
-        List<String> logs = auditRepository.findAll();
-
-        assertThat(logs).hasSize(1);
-        assertThat(logs.get(0)).contains("User: [admin]", "Action: [LOGIN_SUCCESS]");
     }
 
     @Test
@@ -63,11 +57,6 @@ class AuthServiceImplTest extends BaseIntegrationTest {
 
         assertThat(result).isNotPresent();
         assertThat(authService.getCurrentUser()).isNotPresent();
-
-        List<String> logs = auditRepository.findAll();
-
-        assertThat(logs).hasSize(1);
-        assertThat(logs.get(0)).contains("User: [SYSTEM]", "Action: [LOGIN_FAILURE");
     }
 
     @Test
@@ -77,28 +66,18 @@ class AuthServiceImplTest extends BaseIntegrationTest {
 
         assertThat(result).isNotPresent();
         assertThat(authService.getCurrentUser()).isNotPresent();
-
-        List<String> logs = auditRepository.findAll();
-
-        assertThat(logs).hasSize(1);
-        assertThat(logs.get(0)).contains("User: [SYSTEM]", "Action: [LOGIN_FAILURE");
     }
 
     @Test
     @DisplayName("Должен корректно выполнять выход, если пользователь был залогинен")
     void testLogout_WhenLoggedIn() {
         authService.login("admin", "admin123");
-
         assertThat(authService.getCurrentUser()).isPresent();
 
         authService.logout();
 
         assertThat(authService.getCurrentUser()).isNotPresent();
 
-        List<String> logs = auditRepository.findAll();
-
-        assertThat(logs).hasSize(2);
-        assertThat(logs.get(1)).contains("User: [admin]", "Action: [LOGOUT]");
     }
 
     @Test

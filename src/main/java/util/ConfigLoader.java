@@ -9,17 +9,29 @@ import java.util.Properties;
  */
 public class ConfigLoader {
 
-    /** Имя файла конфигурации в 'resources'. */
+    /**
+     * Имя файла конфигурации в 'resources'.
+     */
     private static final String CONFIG_FILE = "application.properties";
-    /** Ключ для URL базы данных. */
+    /**
+     * Ключ для URL базы данных.
+     */
     private static final String DB_URL_KEY = "db.url";
-    /** Ключ для имени пользователя БД. */
+    /**
+     * Ключ для имени пользователя БД.
+     */
     private static final String DB_USER_KEY = "db.user";
-    /** Ключ для пароля БД. */
+    /**
+     * Ключ для пароля БД.
+     */
     private static final String DB_PASSWORD_KEY = "db.password";
-    /** Ключ для схемы таблиц приложения. */
+    /**
+     * Ключ для схемы таблиц приложения.
+     */
     private static final String DB_APP_SCHEMA_KEY = "db.schema.app";
-    /** Ключ для схемы служебных таблиц Liquibase. */
+    /**
+     * Ключ для схемы служебных таблиц Liquibase.
+     */
     private static final String DB_LIQUIBASE_SCHEMA_KEY = "db.schema.liquibase";
 
     /**

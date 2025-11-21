@@ -17,13 +17,17 @@ import java.util.List;
  */
 public class JdbcAuditRepository implements AuditRepository {
 
-    /** SQL-запрос для вставки новой записи аудита. */
+    /**
+     * SQL-запрос для вставки новой записи аудита.
+     */
     private static final String SAVE_SQL = """
             INSERT INTO app_schema.audit_log (event_log)
             VALUES (?)
             """;
 
-    /** SQL-запрос для получения всех записей аудита, упорядоченных по ID. */
+    /**
+     * SQL-запрос для получения всех записей аудита, упорядоченных по ID.
+     */
     private static final String FIND_ALL_SQL = """
             SELECT event_log
             FROM app_schema.audit_log

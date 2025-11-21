@@ -15,7 +15,9 @@ import java.util.Optional;
  */
 public class AuditServiceImpl implements AuditService {
 
-    /** Репозиторий для сохранения записей аудита. */
+    /**
+     * Репозиторий для сохранения записей аудита.
+     */
     private final AuditRepository auditRepository;
 
     /**
@@ -25,11 +27,15 @@ public class AuditServiceImpl implements AuditService {
      */
     private AuthService authService;
 
-    /** Форматтер для отметки времени в логах аудита. */
+    /**
+     * Форматтер для отметки времени в логах аудита.
+     */
     private static final DateTimeFormatter AUDIT_TIMESTAMP_FORMATTER =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    /** Имя пользователя по умолчанию для системных событий аудита. */
+    /**
+     * Имя пользователя по умолчанию для системных событий аудита.
+     */
     private static final String DEFAULT_AUDIT_USERNAME = "SYSTEM";
 
 

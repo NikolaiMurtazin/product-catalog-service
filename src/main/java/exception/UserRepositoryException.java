@@ -4,7 +4,7 @@ package exception;
  * Не-проверяемое (unchecked) исключение,
  * сигнализирующее об ошибке при доступе к данным в
  * {@link repository.UserRepository}.
- *
+ * <p>
  * Является оберткой для {@link java.sql.SQLException}.
  */
 public class UserRepositoryException extends RuntimeException {

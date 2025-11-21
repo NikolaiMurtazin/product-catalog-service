@@ -19,17 +19,29 @@ import java.sql.Statement;
  */
 public class LiquibaseRunner {
 
-    /** Путь к главному changelog-файлу Liquibase в 'resources'. */
+    /**
+     * Путь к главному changelog-файлу Liquibase в 'resources'.
+     */
     private static final String CHANGELOG_MASTER_FILE = "db/changelog/db.changelog-master.xml";
-    /** SQL-команда для создания схемы, если она не существует. */
+    /**
+     * SQL-команда для создания схемы, если она не существует.
+     */
     private static final String SQL_CREATE_SCHEMA_IF_NOT_EXISTS = "CREATE SCHEMA IF NOT EXISTS ";
-    /** Сообщение в консоль: проверка схем. */
+    /**
+     * Сообщение в консоль: проверка схем.
+     */
     private static final String MSG_SCHEMA_CHECK_COMPLETE = "Проверка схем завершена.";
-    /** Сообщение в консоль: старт миграций. */
+    /**
+     * Сообщение в консоль: старт миграций.
+     */
     private static final String MSG_MIGRATION_START = "Запуск миграций Liquibase...";
-    /** Сообщение в консоль: миграции завершены. */
+    /**
+     * Сообщение в консоль: миграции завершены.
+     */
     private static final String MSG_MIGRATION_SUCCESS = "Миграции Liquibase успешно выполнены.";
-    /** Сообщение об ошибке в случае сбоя миграций. */
+    /**
+     * Сообщение об ошибке в случае сбоя миграций.
+     */
     private static final String ERR_MIGRATION_FAILED = "Ошибка при выполнении миграций Liquibase";
 
 
@@ -37,7 +49,7 @@ public class LiquibaseRunner {
      * Запускает миграции Liquibase.
      *
      * @throws RuntimeException Оборачивает {@link SQLException} или {@link LiquibaseException}
-     * в случае сбоя.
+     *                          в случае сбоя.
      */
     public static void runMigrations() {
         try (Connection connection = ConnectionManager.getConnection()) {

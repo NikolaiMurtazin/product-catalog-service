@@ -19,14 +19,18 @@ import java.util.Optional;
  */
 public class JdbcUserRepository implements UserRepository {
 
-    /** SQL-запрос для поиска пользователя по имени. */
+    /**
+     * SQL-запрос для поиска пользователя по имени.
+     */
     private static final String FIND_BY_USERNAME_SQL = """
             SELECT id, username, password_hash, role
             FROM app_schema.users
             WHERE username = ?
             """;
 
-    /** SQL-запрос для вставки нового пользователя. */
+    /**
+     * SQL-запрос для вставки нового пользователя.
+     */
     private static final String SAVE_SQL = """
             INSERT INTO app_schema.users (username, password_hash, role)
             VALUES (?, ?, ?)
